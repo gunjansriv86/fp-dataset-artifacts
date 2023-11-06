@@ -42,6 +42,7 @@ def compute_accuracy(eval_preds: EvalPrediction):
 def prepare_train_dataset_qa(examples, tokenizer, max_seq_length=None):
     questions = [q.lstrip() for q in examples["question"]]
     max_seq_length = tokenizer.model_max_length
+    print(questions)
     # tokenize both questions and the corresponding context
     # if the context length is longer than max_length, we split it to several
     # chunks of max_length
