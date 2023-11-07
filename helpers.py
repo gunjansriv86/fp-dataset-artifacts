@@ -139,9 +139,9 @@ def prepare_validation_dataset_qa(examples, tokenizer):
         return_offsets_mapping=True,
         padding="max_length"
     )
-    print("tokenized_examples")
-    print(tokenized_examples)
-    print(tokenized_examples[0])
+    # print("tokenized_examples")
+    # print(tokenized_examples)
+    # print(tokenized_examples[0])
     # Since one example might give us several features if it has a long context, we need a map from a feature to
     # its corresponding example. This key gives us just that.
     sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
