@@ -104,6 +104,9 @@ def main():
     eval_dataset_featurized = None
     if training_args.do_train:
         train_dataset = dataset['train']
+
+        # print(train_dataset.features)
+        # print(train_dataset[0])
         if args.max_train_samples:
             train_dataset = train_dataset.select(range(args.max_train_samples))
         train_dataset_featurized = train_dataset.map(
@@ -112,6 +115,10 @@ def main():
             num_proc=NUM_PREPROCESSING_WORKERS,
             remove_columns=train_dataset.column_names
         )
+        # print(type(train_dataset_featurized))
+        # print(len(train_dataset_featurized))
+        # print(train_dataset_featurized)
+        # print(train_dataset_featurized[0])
     if training_args.do_eval:
         eval_dataset = dataset[eval_split]
         if args.max_eval_samples:
@@ -123,6 +130,7 @@ def main():
             remove_columns=eval_dataset.column_names
         )
 
+    print("data processing completed!!!")
     # Select the training configuration
     trainer_class = Trainer
     eval_kwargs = {}
@@ -134,6 +142,8 @@ def main():
         # to enable the question-answering specific evaluation metrics
         trainer_class = QuestionAnsweringTrainer
         eval_kwargs['eval_examples'] = eval_dataset
+        # print("eval_dataset")
+        print(eval_dataset)
         metric = datasets.load_metric('squad')
         compute_metrics = lambda eval_preds: metric.compute(
             predictions=eval_preds.predictions, references=eval_preds.label_ids)

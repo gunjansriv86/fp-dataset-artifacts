@@ -42,7 +42,9 @@ def compute_accuracy(eval_preds: EvalPrediction):
 def prepare_train_dataset_qa(examples, tokenizer, max_seq_length=None):
     questions = [q.lstrip() for q in examples["question"]]
     max_seq_length = tokenizer.model_max_length
-    print(questions)
+    # print(len(examples))
+    # print("example")
+    # print(examples)
     # tokenize both questions and the corresponding context
     # if the context length is longer than max_length, we split it to several
     # chunks of max_length
@@ -56,15 +58,20 @@ def prepare_train_dataset_qa(examples, tokenizer, max_seq_length=None):
         return_offsets_mapping=True,
         padding="max_length"
     )
-
+    # print(tokenized_examples.keys())
+    # print(type(tokenized_examples))
+    # print(tokenized_examples[0])
     # Since one example might give us several features if it has a long context,
     # we need a map from a feature to its corresponding example.
     sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+    # print("sample_mapping")
+    # print(sample_mapping)
     # The offset mappings will give us a map from token to character position
     # in the original context. This will help us compute the start_positions
     # and end_positions to get the final answer string.
     offset_mapping = tokenized_examples.pop("offset_mapping")
-
+    # print("offset_mapping")
+    # print(offset_mapping)
     tokenized_examples["start_positions"] = []
     tokenized_examples["end_positions"] = []
 
@@ -113,10 +120,13 @@ def prepare_train_dataset_qa(examples, tokenizer, max_seq_length=None):
                     token_end_index -= 1
                 tokenized_examples["end_positions"].append(token_end_index + 1)
 
+    # print(tokenized_examples[0])
+
     return tokenized_examples
 
 
 def prepare_validation_dataset_qa(examples, tokenizer):
+
     questions = [q.lstrip() for q in examples["question"]]
     max_seq_length = tokenizer.model_max_length
     tokenized_examples = tokenizer(
@@ -129,7 +139,9 @@ def prepare_validation_dataset_qa(examples, tokenizer):
         return_offsets_mapping=True,
         padding="max_length"
     )
-
+    print("tokenized_examples")
+    print(tokenized_examples)
+    print(tokenized_examples[0])
     # Since one example might give us several features if it has a long context, we need a map from a feature to
     # its corresponding example. This key gives us just that.
     sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
@@ -153,6 +165,7 @@ def prepare_validation_dataset_qa(examples, tokenizer):
             (o if sequence_ids[k] == context_index else None)
             for k, o in enumerate(tokenized_examples["offset_mapping"][i])
         ]
+    # print(tokenized_examples[0])
 
     return tokenized_examples
 
@@ -283,13 +296,16 @@ class QuestionAnsweringTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
-
+        print("output")
+        print(output)
         if self.compute_metrics is not None:
             # post process the raw predictions to get the final prediction
             # (from start_logits, end_logits to an answer string)
             eval_preds = postprocess_qa_predictions(eval_examples,
                                                     eval_dataset,
                                                     output.predictions)
+            # print("eval_preds")
+            # print(eval_preds[0])
             formatted_predictions = [{"id": k, "prediction_text": v}
                                      for k, v in eval_preds.items()]
             references = [{"id": ex["id"], "answers": ex['answers']}
@@ -300,6 +316,12 @@ class QuestionAnsweringTrainer(Trainer):
                 EvalPrediction(predictions=formatted_predictions,
                                label_ids=references)
             )
+            #Output data to understand the difference issues with the model
+            print("formatted_predictions")
+            print(formatted_predictions)
+
+            print("original examples")
+            print(eval_examples)
 
             # Prefix all keys with metric_key_prefix + '_'
             for key in list(metrics.keys()):
