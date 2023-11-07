@@ -321,7 +321,9 @@ class QuestionAnsweringTrainer(Trainer):
             print(formatted_predictions)
 
             print("original examples")
-            print(eval_examples)
+            original_example = [{"id": ex["id"], "answers": ex['answers'],"question": ex['question'],"context": ex['context']}
+                          for ex in eval_examples]
+            print(original_example)
 
             # Prefix all keys with metric_key_prefix + '_'
             for key in list(metrics.keys()):
