@@ -297,8 +297,8 @@ class QuestionAnsweringTrainer(Trainer):
         finally:
             self.compute_metrics = compute_metrics
         print("output")
-        print(output.prediction[0].shape)
-        print(output.prediction[1].shape)
+        print(output.predictions[0].shape)
+        print(output.predictions[1].shape)
         if self.compute_metrics is not None:
             # post process the raw predictions to get the final prediction
             # (from start_logits, end_logits to an answer string)
