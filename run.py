@@ -63,13 +63,17 @@ def main():
         # from the loaded dataset
         eval_split = 'train'
     else:
-        default_datasets = {'qa': ('squad',), 'nli': ('snli',)}
+        default_datasets = {'qa': ('squad',), 'nli': ('snli',),'adversarial_qa': ('adversarial_qa',)}
         dataset_id = tuple(args.dataset.split(':')) if args.dataset is not None else \
             default_datasets[args.task]
         # MNLI has two validation splits (one with matched domains and one with mismatched domains). Most datasets just have one "validation" split
         eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
         # Load the raw data
-        dataset = datasets.load_dataset(*dataset_id)
+        if args.task=='adversarial_qa':
+            dataset = datasets.load_dataset(*('adversarial_qa',),'adversarialQA')
+        else:
+            dataset = datasets.load_dataset(*dataset_id)
+
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
     task_kwargs = {'num_labels': 3} if args.task == 'nli' else {}
@@ -83,7 +87,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
     # Select the dataset preprocessing function (these functions are defined in helpers.py)
-    if args.task == 'qa':
+    if args.task == 'qa' or args.task =='adversarial_qa':
         prepare_train_dataset = lambda exs: prepare_train_dataset_qa(exs, tokenizer)
         prepare_eval_dataset = lambda exs: prepare_validation_dataset_qa(exs, tokenizer)
     elif args.task == 'nli':
@@ -180,6 +184,7 @@ def main():
         #   and https://huggingface.co/transformers/main_classes/callback.html#transformers.TrainerCallback
 
     if training_args.do_eval:
+        # print(eval_dataset[0])
         results = trainer.evaluate(**eval_kwargs)
 
         # To add custom metrics, you should replace the "compute_metrics" function (see comments above).

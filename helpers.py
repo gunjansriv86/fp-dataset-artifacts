@@ -296,9 +296,9 @@ class QuestionAnsweringTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
-        print("output")
-        print(output.predictions[0].shape)
-        print(output.predictions[1].shape)
+        # print("output")
+        # print(output.predictions[0].shape)
+        # print(output.predictions[1].shape)
         if self.compute_metrics is not None:
             # post process the raw predictions to get the final prediction
             # (from start_logits, end_logits to an answer string)
@@ -311,6 +311,8 @@ class QuestionAnsweringTrainer(Trainer):
                                      for k, v in eval_preds.items()]
             references = [{"id": ex["id"], "answers": ex['answers']}
                           for ex in eval_examples]
+            # print(formatted_predictions)
+            # print(references)
 
             # compute the metrics according to the predictions and references
             metrics = self.compute_metrics(
