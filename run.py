@@ -63,16 +63,48 @@ def main():
         # from the loaded dataset
         eval_split = 'train'
     else:
-        default_datasets = {'qa': ('squad',), 'nli': ('snli',),'adversarial_qa': ('adversarial_qa',)}
-        dataset_id = tuple(args.dataset.split(':')) if args.dataset is not None else \
-            default_datasets[args.task]
+        default_datasets = {'qa': ('squad',), 'nli': ('snli',), 'adversarial_qa': ('adversarial_qa',),
+                            'dbidaf': ('dbidaf',), 'dbert': ('dbert',), 'droberta': ('droberta',)}
+
+
+        dataset_id = tuple(args.dataset.split(':')) if args.dataset is not None else default_datasets[args.task]
         # MNLI has two validation splits (one with matched domains and one with mismatched domains). Most datasets just have one "validation" split
         eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
         # Load the raw data
-        if args.task=='adversarial_qa':
-            dataset = datasets.load_dataset(*('adversarial_qa',),'adversarialQA')
-        else:
-            dataset = datasets.load_dataset(*dataset_id)
+        eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
+        combined_dataset = []
+
+        for id in dataset_id:
+            print(id)
+            if id == 'adversarial_qa':
+                dataset = datasets.load_dataset('adversarial_qa', 'adversarialQA')
+                dataset = dataset.remove_columns('metadata')
+                dataset = datasets.DatasetDict({'train': dataset['train'],
+                                                'validation': dataset['validation']})
+
+            elif id == 'dbidaf':
+                dataset = datasets.load_dataset('dbidaf', 'dbidaf')
+                dataset = dataset.remove_columns('metadata')
+                dataset = datasets.DatasetDict({'train': dataset['train'],
+                                                'validation': dataset('dbidaf', 'dbidaf')[
+                                                    'validation']})
+            elif id == 'dbert':
+                dataset = datasets.load_dataset('dbert', 'dbert')
+                dataset = dataset.remove_columns(['metadata'])
+                dataset = datasets.DatasetDict({'train': dataset('dbert', 'dbert')['train'],
+                                                'validation': dataset('dbert', 'dbert')[
+                                                    'validation']})
+            elif id == 'droberta':
+                dataset = datasets.load_dataset('droberta', 'droberta')
+                dataset = dataset.remove_columns(['metadata'])
+                dataset = datasets.DatasetDict({'train': dataset('droberta', 'droberta')['train'],
+                                                'validation': dataset('droberta', 'droberta')[
+                                                    'validation']})
+            else:
+                dataset = datasets.load_dataset(id)
+            combined_dataset.append(dataset)
+
+
 
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
@@ -108,7 +140,10 @@ def main():
     train_dataset_featurized = None
     eval_dataset_featurized = None
     if training_args.do_train:
-        train_dataset = dataset['train']
+        if dataset_id == ('snli',):
+            train_dataset = dataset['train']
+        else:
+            train_dataset = datasets.concatenate_datasets([data['train'] for data in combined_dataset])
 
         # print(train_dataset.features)
         # print(train_dataset[0])
@@ -125,7 +160,10 @@ def main():
         # print(train_dataset_featurized)
         # print(train_dataset_featurized[0])
     if training_args.do_eval:
-        eval_dataset = dataset[eval_split]
+        if dataset_id == ('snli',):
+            eval_dataset = dataset[eval_split]
+        else:
+            eval_dataset = datasets.concatenate_datasets([data[eval_split] for data in combined_dataset])
         if args.max_eval_samples:
             eval_dataset = eval_dataset.select(range(args.max_eval_samples))
         eval_dataset_featurized = eval_dataset.map(
@@ -218,6 +256,7 @@ def main():
                     example_with_prediction['predicted_label'] = int(eval_predictions.predictions[i].argmax())
                     f.write(json.dumps(example_with_prediction))
                     f.write('\n')
+
 
 
 if __name__ == "__main__":
