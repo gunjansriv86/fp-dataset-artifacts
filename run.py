@@ -83,19 +83,19 @@ def main():
                                                 'validation': dataset['validation']})
 
             elif id == 'dbidaf':
-                dataset = datasets.load_dataset('dbidaf', 'dbidaf')
+                dataset = datasets.load_dataset('adversarial_qa', 'dbidaf')
                 dataset = dataset.remove_columns('metadata')
                 dataset = datasets.DatasetDict({'train': dataset['train'],
                                                 'validation': dataset('dbidaf', 'dbidaf')[
                                                     'validation']})
             elif id == 'dbert':
-                dataset = datasets.load_dataset('dbert', 'dbert')
+                dataset = datasets.load_dataset('adversarial_qa', 'dbert')
                 dataset = dataset.remove_columns(['metadata'])
                 dataset = datasets.DatasetDict({'train': dataset('dbert', 'dbert')['train'],
                                                 'validation': dataset('dbert', 'dbert')[
                                                     'validation']})
             elif id == 'droberta':
-                dataset = datasets.load_dataset('droberta', 'droberta')
+                dataset = datasets.load_dataset('adversarial_qa', 'droberta')
                 dataset = dataset.remove_columns(['metadata'])
                 dataset = datasets.DatasetDict({'train': dataset('droberta', 'droberta')['train'],
                                                 'validation': dataset('droberta', 'droberta')[
