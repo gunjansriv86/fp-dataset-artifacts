@@ -140,7 +140,7 @@ def main():
         if dataset_id == ('snli',):
             train_dataset = dataset['train']
         else:
-            train_dataset = datasets.concatenate_datasets([data['train'] for data in combined_dataset])
+            train_dataset = datasets.concatenate_datasets([data['train'][:10000] for data in combined_dataset])
 
         # print(train_dataset.features)
         # print(train_dataset[0])
